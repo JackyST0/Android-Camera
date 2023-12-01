@@ -1,0 +1,89 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.example.meterrecognition'
+    compileSdk 33
+
+    defaultConfig {
+        applicationId "com.example.meterrecognition"
+        minSdk 21
+        targetSdk 33
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    packagingOptions {
+        exclude 'META-INF/services/javax.annotation.processing.Processor'
+        pickFirst  'META-INF/maven/org.bytedeco.javacpp-presets/opencv/pom.properties'
+        pickFirst  'META-INF/maven/org.bytedeco.javacpp-presets/opencv/pom.xml'
+        pickFirst  'META-INF/maven/org.bytedeco.javacpp-presets/ffmpeg/pom.properties'
+        pickFirst  'META-INF/maven/org.bytedeco.javacpp-presets/ffmpeg/pom.xml'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'],dir:'libs')
+
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.8.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+
+    def javacvVersion = '1.4.2'
+    def ffmpegVersion = '4.0.1'
+    def opencvVersion = '3.4.2'
+    implementation(group: 'org.bytedeco', name: 'javacv-platform', version: javacvVersion) {
+        exclude group: 'org.bytedeco.javacpp-presets'
+    }
+    implementation group: 'org.bytedeco.javacpp-presets', name: 'ffmpeg', version: "${ffmpegVersion}-${javacvVersion}"
+    implementation group: 'org.bytedeco.javacpp-presets', name: 'ffmpeg', version: "${ffmpegVersion}-${javacvVersion}", classifier: 'android-arm' // for 'armeabi-v7a'
+    implementation group: 'org.bytedeco.javacpp-presets', name: 'ffmpeg', version: "${ffmpegVersion}-${javacvVersion}", classifier: 'android-arm64' // for 'arm64-v8a'
+    implementation group: 'org.bytedeco.javacpp-presets', name: 'opencv', version: "${opencvVersion}-${javacvVersion}"
+    implementation group: 'org.bytedeco.javacpp-presets', name: 'opencv', version: "${opencvVersion}-${javacvVersion}", classifier: 'android-arm' // for 'armeabi-v7a'
+    implementation group: 'org.bytedeco.javacpp-presets', name: 'opencv', version: "${opencvVersion}-${javacvVersion}", classifier: 'android-arm64' // for 'arm64-v8a'
+
+//    // CameraX核心库
+//    def camerax_version = "1.0.0-alpha01"
+//    implementation "androidx.camera:camera-core:${camerax_version}"
+//    // Camera2扩展依赖
+//    implementation "androidx.camera:camera-camera2:${camerax_version}"
+//
+//    def camerax_view_version = "1.0.0-alpha01"
+//    def camerax_ext_version = "1.0.0-alpha01"
+//    //other
+//    // If you to use the Camera View class
+//    implementation "androidx.camera:camera-view:$camerax_view_version"
+//    // If you to use Camera Extensions
+//    implementation "androidx.camera:camera-extensions:$camerax_ext_version"
+
+    def camerax_version = "1.0.0-alpha06"
+    implementation "androidx.camera:camera-core:${camerax_version}"
+    implementation "androidx.camera:camera-camera2:${camerax_version}"
+
+    def camerax_view_version = "1.0.0-alpha03"
+    def camerax_ext_version = "1.0.0-alpha03"
+    //other
+    // If you to use the Camera View class
+    implementation "androidx.camera:camera-view:$camerax_view_version"
+    // If you to use Camera Extensions
+    implementation "androidx.camera:camera-extensions:$camerax_ext_version"
+
+
+}
