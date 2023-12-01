@@ -1,4 +1,4 @@
-package com.example.meterrecognition.imageView;
+package com.example.tjx.imageView;
 
 import android.app.Activity;
 import android.content.Intent;

@@ -1,4 +1,4 @@
-package com.example.meterrecognition.imageView;
+package com.example.tjx.imageView;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -6,14 +6,13 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.ImageView;
 
-import com.example.meterrecognition.R;
-import com.example.meterrecognition.camera1.Camera1Activity;
+import com.example.tjx.R;
+import com.example.tjx.camera1.Camera1Activity;
 
 import java.io.File;
 import java.util.ArrayList;

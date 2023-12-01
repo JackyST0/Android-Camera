@@ -1,4 +1,4 @@
-package com.example.meterrecognition.imageView;
+package com.example.tjx.imageView;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -9,7 +9,7 @@ import android.view.View.OnClickListener;
 import android.view.Window;
 import android.widget.ImageView;
 
-import com.example.meterrecognition.R;
+import com.example.tjx.R;
 
 public class ImageView1Activity extends Activity implements OnClickListener {
 

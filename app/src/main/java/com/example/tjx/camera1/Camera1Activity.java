@@ -1,4 +1,4 @@
-package com.example.meterrecognition.camera1;
+package com.example.tjx.camera1;
 
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -21,8 +21,8 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.meterrecognition.R;
-import com.example.meterrecognition.utils.Permission;
+import com.example.tjx.R;
+import com.example.tjx.utils.Permission;
 
 import java.io.File;
 import java.io.FileOutputStream;

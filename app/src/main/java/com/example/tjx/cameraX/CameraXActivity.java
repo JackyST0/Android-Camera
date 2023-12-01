@@ -1,4 +1,4 @@
-package com.example.meterrecognition.cameraX;
+package com.example.tjx.cameraX;
 
 import android.content.pm.PackageManager;
 import android.graphics.Matrix;
@@ -13,7 +13,6 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -30,9 +29,8 @@ import androidx.camera.core.Preview;
 import androidx.camera.core.PreviewConfig;
 import androidx.core.content.ContextCompat;
 
-import com.example.meterrecognition.R;
-import com.example.meterrecognition.camera1.Camera1Activity;
-import com.example.meterrecognition.utils.Permission;
+import com.example.tjx.R;
+import com.example.tjx.utils.Permission;
 
 import java.io.File;
 
@@ -124,7 +122,7 @@ public class CameraXActivity extends AppCompatActivity {
             }
         });
 
-        CameraX.bindToLifecycle(this, preview);
+//        CameraX.bindToLifecycle(this, preview);
 
         // 拍照
         // 通过ImageCaptureConfig注入预览设置
@@ -136,8 +134,6 @@ public class CameraXActivity extends AppCompatActivity {
                 // 将图像捕获的目标旋转设置为匹配当前设备的方向
                 .setTargetRotation(getWindowManager().getDefaultDisplay().getRotation())
                 .build();
-
-
 
         ImageCapture imageCapture = new ImageCapture(captureConfig);
         takePicture.setOnClickListener((view) -> {
@@ -164,16 +160,16 @@ public class CameraXActivity extends AppCompatActivity {
         });
 
         // 分析
-//        ImageAnalysisConfig analysisConfig = new ImageAnalysisConfig.Builder()
-//                // 使分析器收到最新可用的图像帧进行分析
-//                .setImageReaderMode(ImageAnalysis.ImageReaderMode.ACQUIRE_LATEST_IMAGE)
-//                .build();
-//
-//        ImageAnalysis imageAnalysis = new ImageAnalysis(analysisConfig);
-//        imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(getApplicationContext()),
-//                new MyAnalyzer());
-//
-//        CameraX.bindToLifecycle(this, preview, imageCapture, imageAnalysis);
+        ImageAnalysisConfig analysisConfig = new ImageAnalysisConfig.Builder()
+                // 使分析器收到最新可用的图像帧进行分析
+                .setImageReaderMode(ImageAnalysis.ImageReaderMode.ACQUIRE_LATEST_IMAGE)
+                .build();
+
+        ImageAnalysis imageAnalysis = new ImageAnalysis(analysisConfig);
+        imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(getApplicationContext()),
+                new MyAnalyzer());
+
+        CameraX.bindToLifecycle(this, preview, imageCapture, imageAnalysis);
     }
 
     /**

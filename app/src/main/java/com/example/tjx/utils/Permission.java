@@ -1,4 +1,4 @@
-package com.example.meterrecognition.utils;
+package com.example.tjx.utils;
 
 import android.app.Activity;
 import android.content.pm.PackageManager;

@@ -1,4 +1,4 @@
-package com.example.meterrecognition;
+package com.example.tjx;
 
 import org.junit.Test;
 
