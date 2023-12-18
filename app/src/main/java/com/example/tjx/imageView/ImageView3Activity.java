@@ -1,7 +1,9 @@
 package com.example.tjx.imageView;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
@@ -13,6 +15,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
@@ -21,7 +24,10 @@ import android.widget.GridLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.FileProvider;
 
 import com.example.tjx.R;
@@ -49,24 +55,18 @@ import butterknife.OnClick;
 public class ImageView3Activity extends Activity implements View.OnClickListener{
 
     private GridLayout imageLayout;
-
     private List<ImageBean> imageList = new ArrayList<>();
-
     private int index;
-
     ImageButton cameraSelectBtn;
-
     private ImageButton cameraBtn;
-
     private String imagePath = null;
-
     private final int GET_PLATFORMAREA_SUCCESS = 2;
-
     private final int GET_PLATFORMAREA_FAIL = 3;
-
+    private static final int REQUEST_CODE_SETTING = 0x01;
     private static final int REQUEST_CODE_CAMERA = 0x0B;
-
     private static final int REQUEST_CHOOSE_PHOTO = 500;
+    private int cameraOperation;//照相机操作类型
+    private String DOWNLOAD_IMAGE_FILE_PATH = FileUtils.getCachePath() + File.separator + "downloadImageData";//服务器下载图片的路径
 
    Handler handler = new Handler() {
         public void handleMessage(Message msg) {
@@ -119,9 +119,12 @@ public class ImageView3Activity extends Activity implements View.OnClickListener
     private void getUploadImageList() {
         new Thread(() -> {
         //查询路径下的所有图片
-        String path = getBaseContext().getExternalCacheDir().getAbsolutePath();
-        File file2 = new File(path);
-        File[] files = file2.listFiles();
+        String path = DOWNLOAD_IMAGE_FILE_PATH;
+        File file = new File(path);
+        if (!file.exists()) {
+            return;
+        }
+        File[] files = file.listFiles();
         for (int i = 0; i < files.length; i++) {
             if (files[i].isFile()) {
                     ImageBean imageBean = new ImageBean(null, files[i]);
@@ -256,14 +259,29 @@ public class ImageView3Activity extends Activity implements View.OnClickListener
     @Override
     public void onClick(View v) {
         if (v.equals(cameraBtn)) {
-            startCamera(REQUEST_CODE_CAMERA);
+            cameraPermission(REQUEST_CODE_CAMERA);
         } else if (v.equals(cameraSelectBtn)) {
-            startCamera(REQUEST_CHOOSE_PHOTO);
+            cameraPermission(REQUEST_CHOOSE_PHOTO);
         }
     }
 
-    private void startCamera(int cameraOperation) {
-        switch (cameraOperation){
+    private void cameraPermission(int cameraOperation) {
+        this.cameraOperation = cameraOperation;
+        boolean flag = true;
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED
+                || ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            flag = false;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissions(new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CODE_CAMERA);
+            }
+        }
+        if (flag) {
+            startCamera();
+        }
+    }
+
+    private void startCamera() {
+        switch (cameraOperation) {
             case REQUEST_CODE_CAMERA:
                 takePhoto();
                 break;
@@ -273,8 +291,36 @@ public class ImageView3Activity extends Activity implements View.OnClickListener
         }
     }
 
-    private void takePhoto() {
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == REQUEST_CODE_CAMERA) {//相机、文件读写
+            boolean flag = true;
+            for (int i = 0; i < grantResults.length; i++) {
+                if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
+                    flag = false;
+                    break;
+                }
+            }
+            if (flag) {
+                startCamera();
+            } else {
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                builder.setTitle("权限")
+                        .setMessage("权限被拒绝，是否进入设置界面手动授权：\n相机权限\n读写手机权限")
+                        .setPositiveButton("设置", (dialog, which) -> {
+                            //进入APP设置界面，手动打开权限
+                            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                            Uri uri = Uri.fromParts("package", this.getPackageName(), null);
+                            intent.setData(uri);
+                            startActivityForResult(intent, REQUEST_CODE_SETTING);
+                        }).setNegativeButton("取消", null);
+                AlertDialog dialog = builder.create();
+                dialog.show();
+            }
+        }
+    }
 
+    private void takePhoto() {
         File imageFile = new File(getExternalCacheDir(), System.currentTimeMillis() + ".jpg");
         if (!imageFile.exists()) {
             try {
@@ -301,7 +347,7 @@ public class ImageView3Activity extends Activity implements View.OnClickListener
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode,@Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (resultCode == RESULT_OK) {
@@ -341,7 +387,7 @@ public class ImageView3Activity extends Activity implements View.OnClickListener
             matrix.setScale(0.5f, 0.5f);
             bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
 
-            File copyFile = new File(getExternalCacheDir(), System.currentTimeMillis() + ".jpg");
+            File copyFile = new File(DOWNLOAD_IMAGE_FILE_PATH, System.currentTimeMillis() + ".jpg");
             ImageUtils.saveImageBitmap(copyFile, bitmap);
             imageFileTemp.delete();//删除旧横向照片
             imageTemp.setFile(copyFile);
@@ -375,5 +421,13 @@ public class ImageView3Activity extends Activity implements View.OnClickListener
             }
         }
         return null;
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (handler != null) {
+            handler.removeCallbacksAndMessages(null);
+        }
     }
 }

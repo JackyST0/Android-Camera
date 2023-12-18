@@ -175,4 +175,16 @@ public class FileUtils {
         }
         return true;
     }
+
+    /**
+     * 获取应用的cache目录
+     */
+    public static String getCachePath() {
+        File f = UIUtils.getContext().getCacheDir();
+        if (null == f) {
+            return null;
+        } else {
+            return f.getAbsolutePath();
+        }
+    }
 }
