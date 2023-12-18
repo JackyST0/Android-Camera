@@ -339,7 +339,7 @@ public class ImageView3Activity extends Activity implements View.OnClickListener
     private Uri getImageUrl(File imageFile) {
         Uri imageUri;
         if (Build.VERSION.SDK_INT >= 24) {
-            imageUri = FileProvider.getUriForFile(this, "android.support.v4.content.fileProvider", imageFile);
+            imageUri = FileProvider.getUriForFile(ImageView3Activity.this, "com.example.tjx.fileProvider", imageFile);
         } else {
             imageUri = Uri.fromFile(imageFile);
         }
