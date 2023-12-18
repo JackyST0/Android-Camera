@@ -1,5 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="colorPrimary">#2AA5FE</color>
+    <color name="colorPrimaryDark">#1582FE</color>
+    <color name="colorAccent">#D81B60</color>
+    <color name="gray">#ccc</color>
+
+    <color name="loginStatueColor">#469148</color>
+
+    <color name="white">#ffffff</color>
+    <color name="color_ddd">#dddddd</color>
+    <color name="light_gray">#E1E0E1</color>
+    <color name="black">#FAFAFA</color>
+
+    <color name="item_group_title">#474747</color>
+    <color name="item_group_edt">#868686</color>
+    <color name="item_text_unimportant">#ACACAC</color>
+
+    <color name="work_title_color">#6D6D6D</color>
+    <color name="viewfinder_mask">#60000000</color>
+    <color name="result_view">#B0000000</color>
+    <color name="viewfinder_frame">#90FFFFFF</color>
+    <color name="result_point_color">#C0FFFF00</color>
+    <color name="laser_color">#0F0</color>
+    <color name="corner_color">#00FF00</color>
+    <color name="default_text">#8a000000</color>
+
+    <!-- 台区识别结果颜色 -->
+    <color name="identify_success_text">#3c763d</color>
+    <color name="identify_success_background">#dff0d8</color>
+    <color name="identify_success_border">#d6e9c6</color>
+
+    <color name="identify_fail_text">#a94442</color>
+    <color name="identify_fail_background">#f2dede</color>
+    <color name="identify_fail_border">#ebccd1</color>
+
+
+    <!--按钮字体颜色-->
+
+    <drawable name="red">#f00</drawable>
+    <drawable name="green">#0f0</drawable>
+    <drawable name="gray">#CECECE</drawable>
+    <drawable name="white">#ffffff</drawable>
+    <drawable name="colorPrimary">#2AA5FE</drawable>
+
+    <color name="colorBlack">#000000</color>
+    <color name="colorRed">#F44336</color>
+    <color name="colorYellow">#FFEB3B</color>
+    <color name="colorGreen">#4CAF50</color>
+    <color name="colorBlue">#00CCFF</color>
+
+    <!-- Toast字体颜色、背景颜色 -->
+    <color name="colorSuccess">#3c763d</color>
+    <color name="colorBackgroundSuccess">#dff0d8</color>
+    <color name="colorFail">#a94442</color>
+    <color name="colorBackgroundFail">#f2dede</color>
+    <color name="colorWarn">#8a6d3b</color>
+    <color name="colorBackgroundWarn">#fcf8e3</color>
 </resources>

@@ -1,4 +1,4 @@
-package com.example.tjx.imageView;
+package com.example.tjx.utils;
 
 import android.app.Activity;
 import android.content.Intent;

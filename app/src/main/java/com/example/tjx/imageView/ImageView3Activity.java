@@ -4,12 +4,16 @@ import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.provider.MediaStore;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -17,19 +21,26 @@ import android.widget.GridLayout;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.content.FileProvider;
 
 import com.example.tjx.R;
+import com.example.tjx.utils.FileUtils;
+import com.example.tjx.utils.ImageBean;
+import com.example.tjx.utils.ImageUtils;
+import com.example.tjx.utils.UIUtils;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+
+import butterknife.BindView;
+import butterknife.OnClick;
 
 /**
  * @author tjx
@@ -43,13 +54,32 @@ public class ImageView3Activity extends Activity implements View.OnClickListener
 
     private int index;
 
+    ImageButton cameraSelectBtn;
+
     private ImageButton cameraBtn;
 
     private String imagePath = null;
 
-    private static final int REQUEST_CODE_CAMERA = 0x0A;
+    private final int GET_PLATFORMAREA_SUCCESS = 2;
 
-    private Handler handler = new Handler() {};
+    private final int GET_PLATFORMAREA_FAIL = 3;
+
+    private static final int REQUEST_CODE_CAMERA = 0x0B;
+
+    private static final int REQUEST_CHOOSE_PHOTO = 500;
+
+   Handler handler = new Handler() {
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case GET_PLATFORMAREA_SUCCESS:
+                    getUploadImageList();
+                    break;
+                case GET_PLATFORMAREA_FAIL:
+                    UIUtils.showToastFail("获取数据失败");
+                    break;
+            }
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,14 +88,36 @@ public class ImageView3Activity extends Activity implements View.OnClickListener
         setContentView(R.layout.activity_imageview3);
         imageLayout = findViewById(R.id.imageLayout);
         cameraBtn = findViewById(R.id.cameraBtn);
+        cameraSelectBtn = findViewById(R.id.cameraSelectBtn);
         cameraBtn.setOnClickListener(this);
-        getUploadImageList();
-        showUploadImage();
+        cameraSelectBtn.setOnClickListener(this);
+//        cameraSelectBtn.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//
+//            }
+//        });
+        getPlatformAreaInfo();
+    }
 
-
+    private void getPlatformAreaInfo() {
+        new Thread(() -> {
+            try {
+                Message msg = new Message();
+                msg.what = GET_PLATFORMAREA_SUCCESS;
+                handler.sendMessage(msg);
+            } catch (Exception e) {
+                Log.e("getPlatformAreaInfo", "获取数据失败", e);
+                Message msg = new Message();
+                msg.what = GET_PLATFORMAREA_FAIL;
+                msg.obj = "获取数据失败";
+                handler.sendMessage(msg);
+            }
+        }).start();
     }
 
     private void getUploadImageList() {
+        new Thread(() -> {
         //查询路径下的所有图片
         String path = getBaseContext().getExternalCacheDir().getAbsolutePath();
         File file2 = new File(path);
@@ -74,15 +126,21 @@ public class ImageView3Activity extends Activity implements View.OnClickListener
             if (files[i].isFile()) {
                     ImageBean imageBean = new ImageBean(null, files[i]);
                     imageList.add(imageBean);
-
             }
         }
+        showUploadImage();
+        }).start();
     }
 
+
     private void showUploadImage() {
+        index = 0;
+        imageLayout.removeAllViews();
+        if (imageList.isEmpty()) {
+            return;
+        }
         for (int i = 0; imageList != null && i < imageList.size(); i++) {
             ImageBean imageBean = imageList.get(i);
-//            String imageId = imageBean.getId().toString();
             //下载缩略图
             DownLoadImageTask downLoadImageTask = new DownLoadImageTask(null, imageBean.getFile().getAbsolutePath(), index++, imageLayout);
             downLoadImageTask.execute();
@@ -117,29 +175,17 @@ public class ImageView3Activity extends Activity implements View.OnClickListener
 
         @Override
         protected Bitmap doInBackground(Void... voids) {
-            Bitmap bitmap = null;
-            try {
-                InputStream inputStream = new FileInputStream(imageFileName);
-                //流转换多次读取
-                ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                byte[] buffer = new byte[1024];
-                int len;
-                while ((len = inputStream.read(buffer)) > -1) {
-                    baos.write(buffer, 0, len);
-                }
-                baos.flush();
-                //前台显示
-                bitmap = BitmapFactory.decodeStream(new ByteArrayInputStream(baos.toByteArray()));
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            Bitmap bitmap = getImageBitmap(imageFileName);
+
+            Matrix matrix = new Matrix();
+            matrix.setScale(0.5f, 0.5f);
+            bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
             return bitmap;
         }
     }
 
     private ImageView getImageView(Bitmap bitmap, GridLayout imageLayout, int index, String imagePath) {
+
         ImageView imageView = new ImageView(this);
         imageView.setImageBitmap(bitmap);
 
@@ -158,13 +204,72 @@ public class ImageView3Activity extends Activity implements View.OnClickListener
         imageView.setLayoutParams(layoutParams);
         imageView.setScaleType(ImageView.ScaleType.FIT_XY);
 
+        //点击预览大图
+        imageView.setOnClickListener((view) -> {
+            Intent intent = new Intent(this, ImageDialogActivity.class);
+            intent.putExtra("imagePath", imagePath);
+            startActivity(intent);
+        });
+        //图片长按删除
+        imageView.setLongClickable(true);
+        imageView.setOnLongClickListener(view -> {
+            final String[] toolbarArr = new String[]{"删除"};
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setItems(toolbarArr, (dialog, i) -> {
+                switch (i) {
+                    case 0://删除
+                        try {
+                            removeGridImage(index);
+                        } catch (Exception e) {
+                            UIUtils.showToastFail("删除图片错误");
+                            Log.e("getImageView", "删除图片错误", e);
+                        }
+                        break;
+                }
+            });
+            AlertDialog alertDialog = builder.create();
+            alertDialog.show();
+            return true;
+        });
         return imageView;
+
+    }
+
+    /**
+     * 删除表格中图片
+     */
+    private void removeGridImage(int i) {
+        //删除当前图片
+        ImageBean imageBean = imageList.get(i);
+        imageList.remove(i);
+        imageLayout.removeAllViews();
+        if (imageBean.getFile() != null) {
+            if (imageBean.getFile().isFile()) {
+                imageBean.getFile().delete();
+                UIUtils.showToastSuccess("删除图片成功");
+            }
+        }
+        //重新加载图片。
+        showUploadImage();
     }
 
     @Override
     public void onClick(View v) {
-        if (v == cameraBtn) {
-            takePhoto();
+        if (v.equals(cameraBtn)) {
+            startCamera(REQUEST_CODE_CAMERA);
+        } else if (v.equals(cameraSelectBtn)) {
+            startCamera(REQUEST_CHOOSE_PHOTO);
+        }
+    }
+
+    private void startCamera(int cameraOperation) {
+        switch (cameraOperation){
+            case REQUEST_CODE_CAMERA:
+                takePhoto();
+                break;
+            case REQUEST_CHOOSE_PHOTO:
+                ImageUtils.startChooseActivity(this, REQUEST_CHOOSE_PHOTO);
+                break;
         }
     }
 
@@ -198,9 +303,27 @@ public class ImageView3Activity extends Activity implements View.OnClickListener
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_CODE_CAMERA) {
-            cameraCallback();
+
+        if (resultCode == RESULT_OK) {
+            switch (requestCode) {
+                case REQUEST_CHOOSE_PHOTO:
+                    choosePhotoCallback(data);
+                    break;
+                case REQUEST_CODE_CAMERA:
+                    cameraCallback();
+                    break;
+            }
         }
+    }
+
+    private void choosePhotoCallback(Intent data) {
+        imagePath = FileUtils.getChooseFileResultPath(data.getData());
+        //拷贝，防止操作源文件
+        String imageName = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date()) + ".jpg";
+        File copyFile = new File(getExternalCacheDir(), imageName);
+        FileUtils.copyFile(imagePath, copyFile.getAbsolutePath(), false);
+        imagePath = copyFile.getAbsolutePath();
+        cameraCallback();
     }
 
     private void cameraCallback() {
@@ -213,21 +336,22 @@ public class ImageView3Activity extends Activity implements View.OnClickListener
             if (degree > 0) {//判断方向
                 bitmap = ImageUtils.rotateBitmapByDegree(bitmap, degree);
             }
-            //质量压缩图片大小
-            bitmap = ImageUtils.getLimitBitmap(bitmap, 500);
+
+            Matrix matrix = new Matrix();
+            matrix.setScale(0.5f, 0.5f);
+            bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+
             File copyFile = new File(getExternalCacheDir(), System.currentTimeMillis() + ".jpg");
             ImageUtils.saveImageBitmap(copyFile, bitmap);
             imageFileTemp.delete();//删除旧横向照片
             imageTemp.setFile(copyFile);
             imagePath = copyFile.getAbsolutePath();
-
             imageList.add(imageTemp);
             //动态添加图片
             ImageView imageView = getImageView(bitmap, imageLayout, index++, imagePath);
             handler.postDelayed(() -> {
-                imageLayout.addView(imageView);
+                    imageLayout.addView(imageView);
             }, 100);
-            bitmap.recycle();
         } catch (Exception e) {
             Log.e("camera", "显示照片错误", e);
         }
@@ -246,6 +370,7 @@ public class ImageView3Activity extends Activity implements View.OnClickListener
                 try {
                     inputStream.close();
                 } catch (IOException e) {
+                    Log.e("getImageBitmap", "获取图像位图错误", e);
                 }
             }
         }

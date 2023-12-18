@@ -14,25 +14,33 @@
             android:layout_height="wrap_content">
 
             <ImageButton
+                android:id="@+id/cameraSelectBtn"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_alignParentLeft="true"
+                android:background="@android:color/transparent"
+                android:scaleType="fitXY"
+                android:src="@drawable/ic_folder_open" />
+
+            <ImageButton
                 android:id="@+id/cameraBtn"
                 android:layout_width="100dp"
                 android:layout_height="100dp"
                 android:layout_alignParentRight="true"
-                android:layout_centerVertical="true"
                 android:background="@android:color/transparent"
                 android:scaleType="fitXY"
                 android:src="@drawable/ic_camera" />
         </RelativeLayout>
 
-    <GridLayout
-        android:id="@+id/imageLayout"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_gravity="center_vertical"
-        android:layout_marginBottom="@android:dimen/app_icon_size"
-        android:layout_weight="1"
-        android:columnCount="4"
-        android:rowCount="10"></GridLayout>
+        <GridLayout
+            android:id="@+id/imageLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginTop="5dp"
+            android:layout_weight="1"
+            android:columnCount="4"
+            android:rowCount="10"></GridLayout>
 
     </LinearLayout>
 

@@ -73,5 +73,5 @@ dependencies {
     // If you to use Camera Extensions
     implementation "androidx.camera:camera-extensions:$camerax_ext_version"
 
-
+    implementation 'com.jakewharton:butterknife:10.2.3'
 }

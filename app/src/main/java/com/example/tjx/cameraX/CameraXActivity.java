@@ -12,6 +12,7 @@ import android.view.TextureView;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
@@ -35,7 +36,7 @@ import com.example.tjx.utils.Permission;
 import java.io.File;
 
 public class CameraXActivity extends AppCompatActivity {
-    private ImageButton takePicture;
+    private Button photoButton;
     private TextureView textureView;
 
     @Override
@@ -47,8 +48,8 @@ public class CameraXActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_camerax);
 
-        takePicture = findViewById(R.id.camerax_take_picture);
-        textureView = findViewById(R.id.camerax_texture);
+        photoButton = findViewById(R.id.photoButton);
+        textureView = findViewById(R.id.textureView);
 
         /*View的宽、高确定后，将在主线程执行run()方法，此处用来启动相机*/
         textureView.post(new Runnable() {
@@ -136,7 +137,7 @@ public class CameraXActivity extends AppCompatActivity {
                 .build();
 
         ImageCapture imageCapture = new ImageCapture(captureConfig);
-        takePicture.setOnClickListener((view) -> {
+        photoButton.setOnClickListener((view) -> {
             final File file = new File(getExternalMediaDirs()[0], System.currentTimeMillis() + ".jpg");
             Log.d("DEBUG", "##### file path: " + file.getPath());
             imageCapture.takePicture(file, ContextCompat.getMainExecutor(getApplicationContext()), new ImageCapture.OnImageSavedListener() {

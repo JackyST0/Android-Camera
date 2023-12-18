@@ -10,7 +10,9 @@
     <uses-feature android:name="android.hardware.camera" android:required="true" />
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
 
+
     <application
+        android:name="com.example.tjx.utils.App"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -29,7 +31,32 @@
         </activity>
 
         <activity
+            android:name=".camera2.Camera2Test1Activity"
+            android:exported="true">
+        </activity>
+
+        <activity
+            android:name=".camera2.Camera2Test2Activity"
+            android:exported="true">
+        </activity>
+
+        <activity
             android:name=".cameraX.CameraXActivity"
+            android:exported="true">
+        </activity>
+
+        <activity
+            android:name=".imageView.ImageView1Activity"
+            android:exported="true">
+        </activity>
+
+        <activity
+            android:name=".imageView.ImageView2Activity"
+            android:exported="true">
+        </activity>
+
+        <activity
+            android:name=".imageView.ImageView3Activity"
             android:exported="true">
             <intent-filter>
                 <!--表明此activity是作为应用程序的入口-->
@@ -38,16 +65,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
-            android:name=".imageView.ImageView1Activity"
-            android:exported="true">
-        </activity>
-        <activity
-            android:name=".imageView.ImageView2Activity"
-            android:exported="true">
-        </activity>
-        <activity
-            android:name=".imageView.ImageView3Activity"
+            android:name=".imageView.ImageDialogActivity"
             android:exported="true">
         </activity>
 
