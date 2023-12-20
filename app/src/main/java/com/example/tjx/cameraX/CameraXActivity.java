@@ -1,8 +1,10 @@
 package com.example.tjx.cameraX;
 
+import android.Manifest;
 import android.content.pm.PackageManager;
 import android.graphics.Matrix;
 import android.media.Image;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Looper;
 import android.util.Log;
@@ -28,6 +30,7 @@ import androidx.camera.core.ImageCaptureConfig;
 import androidx.camera.core.ImageProxy;
 import androidx.camera.core.Preview;
 import androidx.camera.core.PreviewConfig;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.tjx.R;
@@ -38,6 +41,8 @@ import java.io.File;
 public class CameraXActivity extends AppCompatActivity {
     private Button photoButton;
     private TextureView textureView;
+    private static final int REQUEST_CODE_CAMERA = 0x0B;
+    boolean flag = true;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -51,42 +56,33 @@ public class CameraXActivity extends AppCompatActivity {
         photoButton = findViewById(R.id.photoButton);
         textureView = findViewById(R.id.textureView);
 
-        /*View的宽、高确定后，将在主线程执行run()方法，此处用来启动相机*/
-        textureView.post(new Runnable() {
-            @Override
-            public void run() {
-                // 在这里启动相机
-                startCamera();
+        // 动态授权
+        if (ActivityCompat.checkSelfPermission(CameraXActivity.this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED
+                || ActivityCompat.checkSelfPermission(CameraXActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            flag = false;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissions(new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CODE_CAMERA);
             }
-        });
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        Permission.checkPermission(this);
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if(Permission.isPermissionGranted(this)) {
-            Log.i("PERMISSION","请求权限成功");
         }
     }
 
     @Override
-    public void onRequestPermissionsResult(
-            int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == Permission.REQUEST_CODE) {
-            for (int grantResult : grantResults) {
-                if (grantResult != PackageManager.PERMISSION_GRANTED) {
-                    Log.e("Permission","授权失败！");
-                    // 授权失败，退出应用
-                    this.finish();
-                    return;
+        if (requestCode == REQUEST_CODE_CAMERA) {//相机、文件读写
+            boolean flag = true;
+            for (int i = 0; i < grantResults.length; i++) {
+                if (grantResults[i] != PackageManager.PERMISSION_GRANTED) {
+                    flag = false;
+                    break;
                 }
+            }
+            if (flag) {
+                startCamera();
+            } else {
+                Log.e("Permission","授权失败！");
+                // 授权失败，退出应用
+                this.finish();
             }
         }
     }
@@ -96,14 +92,18 @@ public class CameraXActivity extends AppCompatActivity {
         CameraX.unbindAll();
 
         // 预览
+        // 计算屏幕参数:宽、高 、屏幕高宽比、尺寸
+        int aspRatioW = textureView.getWidth(); // 预览View的宽
+        int aspRatioH = textureView.getHeight(); // 预览View的高
+        Size screen = new Size(aspRatioW, aspRatioH); // 屏幕尺寸
         // 通过PreviewConfig注入预览设置
         PreviewConfig config = new PreviewConfig.Builder()
                 // 将相机镜头朝向后置摄像头
                 .setLensFacing(CameraX.LensFacing.BACK)
                 // 将预览的目标旋转设置为匹配当前设备的方向
                 .setTargetRotation(textureView.getDisplay().getRotation())
-                // 将预览的目标分辨率设置为 640x480 像素
-                .setTargetResolution(new Size(640, 480))
+                // 设置预览的目标分辨率为屏幕尺寸大小
+                .setTargetResolution(screen)
                 .build();
 
         // 根据预览配置生成预览对象，并设置预览回调（每更改一次画面都调用一次该回调函数）
